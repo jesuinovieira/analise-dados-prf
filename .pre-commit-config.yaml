@@ -1,0 +1,74 @@
+# To install pre-commit: `pip install pre-commit`
+# To set up the git hook scripts: `pre-commit install`
+# To apply the hooks to all files: `pre-commit run --all-files`
+# To update your hooks to the latest version: `pre-commit autoupdate`
+# To disable hooks: `git commit -m "foo" --no-verify`
+#
+# Documentation: https://pre-commit.com/
+# Tools & best practices for code quality: https://realpython.com/python-code-quality/
+
+# Add the folders to be ignored between ^() and separate them with |, for ex:
+# exclude: ^(foo/a|bar/b)
+
+repos:
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+    - id: check-executables-have-shebangs
+    - id: check-json
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: requirements-txt-fixer
+    - id: trailing-whitespace
+
+- repo: https://github.com/asottile/reorder_python_imports
+  rev: v3.9.0
+  hooks:
+    - id: reorder-python-imports
+      # Note: separate directories with :, for example
+      # args: [--application-directories, "for:foo/bar"]
+
+- repo: https://github.com/myint/docformatter
+  rev: v1.5.1
+  hooks:
+    - id: docformatter
+      args: [--in-place, --wrap-summaries, "88", --wrap-descriptions, "88"]
+
+- repo: https://github.com/asottile/blacken-docs
+  rev: 1.13.0
+  hooks:
+    - id: blacken-docs
+
+- repo: https://github.com/ambv/black
+  rev: 23.3.0
+  hooks:
+  - id: black
+    language_version: python3.10
+    args: [--preview]
+
+- repo: https://github.com/PyCQA/flake8
+  rev: 6.0.0
+  hooks:
+  - id: flake8
+
+# Below are other interesting hooks, but not activated by default
+
+# - repo: https://github.com/pycqa/pydocstyle
+#   rev: 6.3.0
+#   hooks:
+#   - id: pydocstyle
+#     args:
+#       - --convention=google
+#       - --add-ignore=D100,D104,D203,D213
+
+# - repo: https://github.com/PyCQA/bandit
+#   rev: 1.7.5
+#   hooks:
+#   - id: bandit
+#     args: [--skip, "B101", --recursive, clumper]
+
+# - repo: https://github.com/asottile/pyupgrade
+#   rev: v3.3.1
+#   hooks:
+#   - id: pyupgrade
