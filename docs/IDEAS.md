@@ -1,3 +1,7 @@
+# refactor
+
+- create utils.py to specify things such as dtypes, plot map, etc
+
 # ideas
 
 - drop accidents without victims before analysis (19.1%)
