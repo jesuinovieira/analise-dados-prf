@@ -8,16 +8,12 @@
 "tipo_pista"
 "tracado_via"
 
-"dia_semana"
-"horario"
-"data_inversa": "dia" + "mes" + "ano"
-
 # cluster
 
 "latitude"
 "longitude"
 
-# severity
+# compute-severity
 
 "mortos"
 "feridos_graves"
@@ -27,6 +23,10 @@
 "classificacao_acidente"
 
 # discarded
+
+"dia_semana"
+"horario"
+"data_inversa": "dia" + "mes" + "ano"
 
 "pessoas"
 "ignorados"
