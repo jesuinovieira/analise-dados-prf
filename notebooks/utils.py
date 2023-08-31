@@ -1,3 +1,7 @@
+import plotly
+import numpy as np
+import plotly.graph_objects as go
+
 CAUSA = {
     "Condição da via": [
         "Pista Escorregadia", 
@@ -21,32 +25,36 @@ CAUSA = {
         "Declive acentuado",
         "Objeto estático sobre o leito carroçável",
     ],
-    "Comportamento do condutor": [
+    "Comportamento do condutor: desrespeito às sinalizações": [
+        "Condutor desrespeitou a iluminação vermelha do semáforo",
+        "Conversão proibida",
+        "Ultrapassagem Indevida",
+        "Desrespeitar a preferência no cruzamento",
+        "Retorno proibido",
+        "Acesso irregular",
         "Transitar na contramão",
+        "Transitar no acostamento",
+        "Estacionar ou parar em local proibido",
+        "Transitar na calçada",
+    ],
+    "Comportamento do condutor: direção perigosa": [
         "Acessar a via sem observar a presença dos outros veículos",
         "Trafegar com motocicleta (ou similar) entre as faixas",
-        "Mal súbito do condutor",
         "Frear bruscamente",
         "Velocidade Incompatível",
         "Reação tardia ou ineficiente do condutor",
         "Manobra de mudança de faixa",
         "Condutor deixou de manter distância do veículo da frente",
-        "Ingestão de álcool pelo condutor",
-        "Condutor desrespeitou a iluminação vermelha do semáforo",
         "Ausência de reação do condutor",
-        "Ultrapassagem Indevida",
-        "Desrespeitar a preferência no cruzamento",
-        "Conversão proibida",
         "Condutor Dormindo",
         "Condutor usando celular",
-        "Transitar no acostamento",
-        "Estacionar ou parar em local proibido",
         "Participar de racha",
-        "Transitar na calçada",
         "Deixar de acionar o farol da motocicleta (ou similar)",
+    ],
+    "Comportamento do condutor: condições de saúde/consciência": [
+        "Mal súbito do condutor",
+        "Ingestão de álcool pelo condutor",
         "Ingestão de substâncias psicoativas pelo condutor",
-        "Retorno proibido",
-        "Acesso irregular",
     ],
     "Comportamento do pedestre": [
         "Entrada inopinada do pedestre",
@@ -83,9 +91,8 @@ CAUSA = {
     ]
 }
 
-
 TIPO = {
-    "Colisões": [
+    "Colisão": [
         "Colisão frontal",
         "Colisão transversal",
         "Colisão traseira",
@@ -94,34 +101,29 @@ TIPO = {
         "Colisão com objeto",
         "Colisão lateral sentido oposto"
     ],
-    "Atropelamentos": [
+    "Atropelamento": [
         "Atropelamento de Pedestre",
         "Atropelamento de Animal"
     ],
-    "Acidentes diversos": [
-        "Tombamento",
-        "Capotamento",
-        "Engavetamento",
-        "Queda de ocupante de veículo",
-        "Saída de leito carroçável",
-        "Incêndio",
-        "Derramamento de carga",
-        "Eventos atípicos"
-    ]
 }
+
+PALETTE = plotly.colors.qualitative.Alphabet * 2
+PALETTE = [item for item in PALETTE if item != "#E2E2E2"]
 
 
 def categorizar_causa(causa):
     for k, v in CAUSA.items():
         if causa in v:
             return k
-    return causa
+
+    raise ValueError(f"Could not categorize accident cause: '{causa}'")
 
 
 def categorizar_tipo(tipo):
     for k, v in TIPO.items():
         if tipo in v:
             return k
+
     return tipo
 
 
@@ -142,4 +144,67 @@ def categorizar_severidade(row):
     if row.classificacao_acidente == "Sem Vítimas":
         return 1
 
-    raise ValueError("Could not compute severity")
+    raise ValueError("Could not categorize severity")
+
+
+def group_others(dataset, n=5):
+    copy = dataset.copy()
+    
+    numericals = copy._get_numeric_data().columns
+    categoricals = set(copy.columns) - set(numericals)
+
+    for column in categoricals:
+        counts = copy[column].value_counts()
+        top_labels = counts.nlargest(n).index.tolist()
+        
+        copy[column] = copy[column].apply(lambda x: x if x in top_labels else "Outros")
+    
+    return copy
+
+
+def plot_map(df, labels, dst, title):
+    fig = go.Figure()
+
+    for label in np.unique(labels):
+        mask = labels == label
+        subset = df[mask]
+        color = PALETTE[label]
+
+        scatter = go.Scattermapbox(
+            lat=subset.latitude,
+            lon=subset.longitude,
+            mode="markers",
+            marker=dict(size=5, color=color),
+            text=f"{label}",
+            showlegend=True,
+            name=f"Cluster {label + 1}"
+        )
+
+        fig.add_trace(scatter)
+
+    fig.update_layout(
+        title=title,
+        title_x=0.95,
+        title_y=0.1,
+        mapbox_style="open-street-map",
+        mapbox=dict(center=dict(lat=-28.25, lon=-53), zoom=5.25),
+        margin={"l": 0, "r": 0, "t": 0, "b": 0},
+        # legend_tracegroupgap=1,
+        # legend=dict(font=dict(size=8))
+    )
+
+    if dst:
+        ratio = (1 + 5 ** 0.5) / 2
+        width = 1200
+        height = int(width / ratio)
+
+        fig.write_html(f"{dst}.html")
+        fig.write_image(
+            f"{dst}.png",
+            format="png",
+            engine="kaleido",
+            width=width,
+            height=height
+        )
+
+    fig.show()
