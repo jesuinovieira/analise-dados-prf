@@ -24,6 +24,7 @@ CAUSA = {
         "Redutor de velocidade em desacordo",
         "Declive acentuado",
         "Objeto estático sobre o leito carroçável",
+        "Defeito na Via",
     ],
     "Comportamento do condutor: desrespeito às sinalizações": [
         "Condutor desrespeitou a iluminação vermelha do semáforo",
@@ -50,11 +51,18 @@ CAUSA = {
         "Condutor usando celular",
         "Participar de racha",
         "Deixar de acionar o farol da motocicleta (ou similar)",
+        "Desobediência às normas de trânsito pelo condutor",
+        "Falta de Atenção à Condução",
+        "Não guardar distância de segurança",
     ],
     "Comportamento do condutor: condições de saúde/consciência": [
         "Mal súbito do condutor",
+        "Mal Súbito",
         "Ingestão de álcool pelo condutor",
+        "Ingestão de Álcool",
         "Ingestão de substâncias psicoativas pelo condutor",
+        "Ingestão de Substâncias Psicoativas",
+        "Agressão Externa",
     ],
     "Comportamento do pedestre": [
         "Entrada inopinada do pedestre",
@@ -62,6 +70,8 @@ CAUSA = {
         "Ingestão de álcool e/ou substâncias psicoativas pelo pedestre",
         "Pedestre andava na pista",
         "Ingestão de álcool ou de substâncias psicoativas pelo pedestre",
+        "Desobediência às normas de trânsito pelo pedestre",
+        "Falta de Atenção do Pedestre",
     ],
     "Condição do veículo": [
         "Problema com o freio",
@@ -71,6 +81,8 @@ CAUSA = {
         "Deficiência do Sistema de Iluminação/Sinalização",
         "Problema na suspensão",
         "Faróis desregulados",
+        "Defeito Mecânico no Veículo",
+        "Deficiência ou não Acionamento do Sistema de Iluminação/Sinalização do Veículo",
     ],
     "Infraestrutura e sinalização": [
         "Falta de elemento de contenção que evite a saída do leito carroçável",
@@ -81,6 +93,8 @@ CAUSA = {
         "Ausência de sinalização",
         "Semáforo com defeito",
         "Obras na pista",
+        "Restrição de Visibilidade",
+        "Sinalização da via insuficiente ou inadequada",
     ],
     "Fatores ambientais": [
         "Chuva", 
@@ -88,6 +102,7 @@ CAUSA = {
         "Fumaça",
         "Demais Fenômenos da natureza",
         "Animais na Pista",
+        "Fenômenos da Natureza",
     ]
 }
 
@@ -115,7 +130,7 @@ def categorizar_causa(causa):
     for k, v in CAUSA.items():
         if causa in v:
             return k
-
+    
     raise ValueError(f"Could not categorize accident cause: '{causa}'")
 
 
@@ -165,9 +180,8 @@ def group_others(dataset, n=5):
 def plot_map(df, labels, dst, title):
     fig = go.Figure()
 
-    for label in np.unique(labels):
-        mask = labels == label
-        subset = df[mask]
+    for label in labels:
+        subset = df[df.cluster == label]
         color = PALETTE[label]
 
         scatter = go.Scattermapbox(
@@ -189,8 +203,6 @@ def plot_map(df, labels, dst, title):
         mapbox_style="open-street-map",
         mapbox=dict(center=dict(lat=-28.25, lon=-53), zoom=5.25),
         margin={"l": 0, "r": 0, "t": 0, "b": 0},
-        # legend_tracegroupgap=1,
-        # legend=dict(font=dict(size=8))
     )
 
     if dst:
